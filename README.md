@@ -1,5 +1,5 @@
 # What is this?
-Some predictor implmentations using collaborative filtering algorithms.
+Some predictor implementations using collaborative filtering algorithms.
 
 # Building and Running Mona
 ## Requirements
