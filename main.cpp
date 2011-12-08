@@ -32,43 +32,60 @@
 using REDSVD::SMatrixXf;
 
 static float CalcMAE(const SVDPredictor& p,
-                     const SMatrixXf& learn_matrix,
-                     const SMatrixXf& check_matrix,
+                     const SMatrixXf& training_matrix,
+                     const SMatrixXf& evaluation_matrix,
                      int k) {
     int n = 0;
     float diff_sum = 0;
-    for (int j = 0; j < check_matrix.outerSize(); ++j) {
-      for (SMatrixXf::InnerIterator it(check_matrix, j); it; ++it) {
+    for (int j = 0; j < evaluation_matrix.outerSize(); ++j) {
+      for (SMatrixXf::InnerIterator it(evaluation_matrix, j); it; ++it) {
         int user = it.row();
         int item = it.col();
-        if (user < learn_matrix.rows() && item < learn_matrix.cols()) {
+        if (user < training_matrix.rows() && item < training_matrix.cols()) {
           float rating = p.Predict(user, item, k);
           float real_rating = it.value();
+          //printf("(%d %d) rating=%f real_rating=%f\n", user, item, rating, real_rating);
           diff_sum += fabs(real_rating - rating);
+          //printf("%f %d\n", diff_sum, n);
           n++;
         }
       }
     }
+
     return diff_sum / n;
 }
 
 int main(int argc, char *argv[]) {
-  if (argc == 2 && std::string(argv[1]) == "gen") {
-    //    MovieLensToRedSVD("/Users/taro/Desktop/ml-100k/u.check.data");
-    MovieLensToRedSVD("/Users/taro/Desktop/ml-100k/u.data");
+  if (argc != 3) {
+    return -1;
+  }
+
+  // MovidLens data format to sparse file format
+  if (std::string(argv[1]) == "gen") {
+    MovieLensToRedSVD(argv[2]);
     return 0;
   }
 
-  const char* ANSWER_FILE = "/Users/taro/higepon/svd/check.data";
-  //    const char* LEARNING_FILE = "/Users/taro/higepon/svd/learning.data";
-    const char* LEARNING_FILE = "/Users/taro/higepon/svd/all.data";
-  SMatrixXf learn_matrix;
-  SMatrixXf answer_matrix;
-  ReadMatrix(LEARNING_FILE, learn_matrix);
-  ReadMatrix(ANSWER_FILE, answer_matrix);
-  SVDPredictor p(learn_matrix);
+  std::string training_file = argv[1];
+  std::string evaluation_file = argv[2];
+  SMatrixXf training_matrix;
+  SMatrixXf evaluation_matrix;
+  ReadMatrix(training_file, training_matrix);
+  printf("training_matrix(943, 403) should be 4 = %f\n", training_matrix.coeffRef(943, 403));
+  ReadMatrix(evaluation_file, evaluation_matrix);
+  printf("evaluation_matrix(943, 1188) should be 3 = %f\n", evaluation_matrix.coeffRef(943, 1188));
+
+  // test
+  REDSVD::RedSVD red_svd(training_matrix);
+  const Eigen::MatrixXf d =  (red_svd.matrixU() * red_svd.singularValues().asDiagonal()) * red_svd.matrixV().transpose();
+  printf("ret(%d, %d)=%f should be nearly 4\n", 943, 403, d(943, 403));
+
+  // test
+  SVDPredictor p(training_matrix);
+  printf("p(943, 1188)=%f should be nearly 3 \n", p.Predict(943, 1188, 800));
+  printf("=== %s \n", training_file.c_str());
   for (int k = 10; k <= p.NumSingularValues();) {
-    printf("%d,%f\n", k, CalcMAE(p, answer_matrix, learn_matrix, k));
+    printf("%d,%f\n", k, CalcMAE(p, training_matrix, evaluation_matrix, k));
     k += 30;
   }
   return 0;

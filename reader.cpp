@@ -84,13 +84,22 @@ void MovieLensToRedSVD(const string& path) {
     }
     in.close();
   }
+  int i = 1;
+  printf("\n"); // line : 0
   for (map<int, vector< pair<int, float> > >::const_iterator it = ret.begin();
        it != ret.end(); ++it) {
+    if (i != (*it).first) {
+      for (int j = 0; j < (*it).first - i; j++) {
+        printf("\n");
+      }
+      i = (*it).first;
+    }
     for (vector< pair<int, float> >::const_iterator it2 = (*it).second.begin();
          it2 != (*it).second.end(); ++it2) {
       printf("%d:%f ", (*it2).first, (*it2).second);
     }
     printf("\n");
+    i++;
   }
 }
 

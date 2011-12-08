@@ -42,6 +42,10 @@ float SVDPredictor::Predict(int user, int item, int k) const {
   for (int i = 0; i < k; i++) {
     ret += u_(user, i) * sv_(i, 0) * v_(item, i);
   }
+#if 0
+  const Eigen::MatrixXf d =  (u_ * sv_.asDiagonal()) * v_.transpose();
+  printf("ret(%d, %d)=%f\n", user, item, d(user, item) +  RatingMeanByUser(user));
+#endif
   return ret;
 }
 
@@ -52,14 +56,21 @@ float SVDPredictor::RatingMeanByUser(int user) const {
     return (*it).second;
   }
   float sum = 0;
+  int n = 0;
   for (int k = 0; k < m_.outerSize(); ++k) {
     for (REDSVD::SMatrixXf::InnerIterator it(m_, k); it; ++it) {
       if (user == it.row()) {
         sum += it.value();
+        n++;
       }
     }
   }
-  float mean = sum / m_.cols();
+  float mean;
+  if (n == 0) {
+    mean = 0;
+  } else {
+    mean = sum / n;
+  }
   cache[user] = mean;
   return mean;
 }
