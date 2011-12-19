@@ -28,24 +28,26 @@
 #ifndef SVD_SVD_PREDICTOR_H_
 #define SVD_SVD_PREDICTOR_H_
 
+#include <tr1/unordered_map>
 #include "redsvd.hpp"
 
 class SVDPredictor {
  public:
   explicit SVDPredictor(const REDSVD::SMatrixXf& m);
-  float Predict(int user, int item, int k) const;
+  float Predict(int user, int item, int k);
   int NumSingularValues() const {
     return sv_.rows();
   }
 
  private:
-  float RatingMeanByUser(int user) const;
+  float RatingMeanByUser(int user);
 
   const REDSVD::SMatrixXf& m_;
   REDSVD::RedSVD red_svd_;
   const Eigen::VectorXf& sv_;
   const Eigen::MatrixXf& v_;
   const Eigen::MatrixXf& u_;
+  std::tr1::unordered_map<int, float> cache_;
 };
 
 #endif  // SVD_SVD_PREDICTOR_H_

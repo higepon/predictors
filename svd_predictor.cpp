@@ -25,7 +25,7 @@
  *   SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  */
-#include <tr1/unordered_map>
+
 #include "./svd_predictor.h"
 
 SVDPredictor::SVDPredictor(const REDSVD::SMatrixXf& m)
@@ -36,7 +36,7 @@ SVDPredictor::SVDPredictor(const REDSVD::SMatrixXf& m)
       u_(red_svd_.matrixU()) {
 }
 
-float SVDPredictor::Predict(int user, int item, int k) const {
+float SVDPredictor::Predict(int user, int item, int k) {
   assert(k <= sv_.rows());
   float ret = RatingMeanByUser(user);
   for (int i = 0; i < k; i++) {
@@ -49,10 +49,9 @@ float SVDPredictor::Predict(int user, int item, int k) const {
   return ret;
 }
 
-float SVDPredictor::RatingMeanByUser(int user) const {
-  static std::tr1::unordered_map<int, float> cache;
-  std::tr1::unordered_map<int, float>::iterator it = cache.find(user);
-  if (it != cache.end()) {
+float SVDPredictor::RatingMeanByUser(int user) {
+  std::tr1::unordered_map<int, float>::iterator it = cache_.find(user);
+  if (it != cache_.end()) {
     return (*it).second;
   }
   float sum = 0;
@@ -71,6 +70,6 @@ float SVDPredictor::RatingMeanByUser(int user) const {
   } else {
     mean = sum / n;
   }
-  cache[user] = mean;
+  cache_[user] = mean;
   return mean;
 }
