@@ -1,5 +1,5 @@
 /*
- *   Copyright (c) 2011  Higepon(Taro Minowa)  <higepon@users.sourceforge.jp>
+ *   Copyright (c) 2011  Higepon(Taro Minowa)  <higepon@labs.cybozu.co.jp>
  *
  *   Redistribution and use in source and binary forms, with or without
  *   modification, are permitted provided that the following conditions
